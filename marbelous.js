@@ -316,15 +316,37 @@ $(document).ready(function(){
 			redrawSource();
 			$('#hex_ascii').attr('disabled', true);
 			$('#no_nbsp').attr('disabled', true);
+			$('#active_board').attr('disabled', true);
+			//$('#new_board').attr('disabled', true);
 			$('#grid_source_toggle').val('View Marbelous Board');
 		}else{ 
 			boards = parseBoards($('#marbelous-source').val());
 			$('#hex_ascii').attr('disabled', false);
 			$('#no_nbsp').attr('disabled', false);
+			$('#active_board').attr('disabled', false);
+			//$('#new_board').attr('disabled', false);
 			$('#grid_source_toggle').val('View Marbelous Source');
+			
+			// refresh board list
+			$('#active_board').empty();
+			for(var i = 0; i < boards.length; ++i){
+				var opt = document.createElement('option');
+				opt.value = i;
+				var txt = boards[i].getName() + ' (' + boards[i].getAbbr() + '/' + ('00'+i).substr(-2) + ')';
+				opt.appendChild(document.createTextNode(txt));
+				$('#active_board')[0].appendChild(opt);
+			}
+			
 			active_board = 0;
 			redrawGrid();
 		}
 		grid_active = !grid_active;
+	});
+	$('#active_board').on('change', function(){
+		var nactive = $(this).val();
+		if(nactive >= 0 && nactive < boards.length){
+			active_board = nactive;
+			redrawGrid();
+		}
 	});
 });
