@@ -3,26 +3,27 @@ var no_nbsp = false;
 var grid_active = true;
 
 var CTypes = Object.freeze({
-	NOTHING:		[0, 'nothing', '..'],
-	TRASHBIN:		[1, 'trashbin', '\\/'],
-	CLONER:			[2, 'cloner', '/\\'],
-	DEFLECT_L:		[3, 'deflector-left', '//'],
-	DEFLECT_R:		[4, 'defector-right', '\\\\'],
-	INCREMENT:		[5, 'incrementor', '++'],
-	DECREMENT:		[6, 'decrementor', '--'],
-	TELEPORTER:		[7, 'teleporter', 'T?'],
-	PAUSE:			[8, 'pause', 'P?'],
-	LESSTHAN:		[9, 'less-than', '<?'],
-	GREATERTHAN:	[10,'greater-than', '>?'],
-	EQUALTO:		[11,'equal-to', '=?'],
-	RANDOM:			[12,'random', 'R?'],
-	SUBROUTINE:		[13,'subroutine', 'S?'],
-	NAMEDSUBR:		[14,'subroutine', 'Custom Regex'],
-	INPUT:			[15,'input', 'I*'],
-	OUTPUT:			[16,'output', 'O?'],
-	OUTPUTEXIT:		[17,'output-exit', 'X?'],
-	HEXLITERAL:		[18,'hex-literal', 'Custom Regex'],
-	INVALID: 		[19, 'invalid', 'Default Value']
+	NOTHING:		[0, 'nothing', /^(|\.\.|\s{2})$/, '..'],
+	TRASHBIN:		[1, 'trashbin', /^\\\/$/, '\\/'],
+	CLONER:			[2, 'cloner', /^\/\\$/, '/\\'],
+	DEFLECT_L:		[3, 'deflector-left', /^\/\/$/, '//'],
+	DEFLECT_R:		[4, 'defector-right', /^\\\\$/, '\\\\'],
+	INCREMENT:		[5, 'incrementor', /^\+\+$/, '++'],
+	DECREMENT:		[6, 'decrementor', /^\-\-$/, '--'],
+	PORTAL:			[7, 'portal', /^P[A-Z\d]$/, 'P'],
+	SYNCHRONISER:	[8, 'synchroniser', /^S[A-Z\d]$/, 'S'],
+	LESSTHAN:		[9, 'less-than', /^\<[A-Z\d]$/, '<'],
+	GREATERTHAN:	[10,'greater-than', /^\>[A-Z\d]$/, '>'],
+	EQUALTO:		[11,'equal-to', /^=[A-Z\d]$/, '='],
+	RANDOM:			[12,'random', /^R[A-Z\d\?]$/, 'R'],
+//	SUBROUTINE:		[13,'subroutine', 'S?'],
+		// todo: add validation for named subroutines from table
+	NAMEDSUBR:		[14,'subroutine', /^[A-Za-z]{2}$/, '??'],
+	INPUT:			[15,'input', /^I[A-Z\d]$/, 'I'],
+	OUTPUT:			[16,'output', /^O[A-Z\d\>\<]$/, 'O'],
+	TERMINATE:		[17,'terminate', /^##$/, '##'],
+	HEXLITERAL:		[18,'hex-literal', /^[A-Z\d]{2}$/, '??'],
+	INVALID: 		[19, 'invalid', /^(Default Value){10}$/, '??'],
 });
 function Cell(text){
 	var value = text.substr(1,1), type;
@@ -31,40 +32,30 @@ function Cell(text){
 		this.value = '';
 		return;
 	}
-	function checkRegex(text, cmp){
-		var regex = cmp;
-		// escape all regex characters
-		regex = regex.replace(/[\-\[\]\/\{\}\(\)\+\.\\\^\$\|]/g, "\\$&");
-		regex = regex.replace('?','[A-Z\\d\\?]');
-		regex = regex.replace('*','[A-Z\\d]');
-		regex = '^' + regex + '$';
-		return text.match(regex);
-	}
-	if(text == CTypes.NOTHING[2]) type = CTypes.NOTHING, value = '';
-	else if(text == CTypes.TRASHBIN[2]) type = CTypes.TRASHBIN, value = '';
-	else if(text == CTypes.CLONER[2]) type = CTypes.CLONER, value = '';
-	else if(text == CTypes.DEFLECT_L[2]) type = CTypes.DEFLECT_L, value = '';
-	else if(text == CTypes.DEFLECT_R[2]) type = CTypes.DEFLECT_R, value = '';
-	else if(text == CTypes.INCREMENT[2]) type = CTypes.INCREMENT, value = '';
-	else if(text == CTypes.DECREMENT[2]) type = CTypes.DECREMENT, value = '';
-	else if(checkRegex(text,CTypes.TELEPORTER[2])) type = CTypes.TELEPORTER;
-	else if(checkRegex(text,CTypes.PAUSE[2])) type = CTypes.PAUSE;
-	else if(checkRegex(text,CTypes.LESSTHAN[2])) type = CTypes.LESSTHAN;
-	else if(checkRegex(text,CTypes.GREATERTHAN[2])) type = CTypes.GREATERTHAN;
-	else if(checkRegex(text,CTypes.EQUALTO[2])) type = CTypes.EQUALTO;
-	else if(checkRegex(text,CTypes.RANDOM[2])) type = CTypes.RANDOM;
-	else if(checkRegex(text,CTypes.SUBROUTINE[2])) type = CTypes.SUBROUTINE;
-	else if(checkRegex(text,CTypes.INPUT[2])) type = CTypes.INPUT;
-	else if(checkRegex(text,CTypes.OUTPUT[2])) type = CTypes.OUTPUT;
-	else if(checkRegex(text,CTypes.OUTPUTEXIT[2])) type = CTypes.OUTPUTEXIT;
-	else if(text.match(/^[A-F\d]{2}$/)) type = CTypes.HEXLITERAL, value = parseInt(text, 16); 
+	if(text.match(CTypes.NOTHING[2])) type = CTypes.NOTHING;
+	else if(text.match(CTypes.TRASHBIN[2])) type = CTypes.TRASHBIN;
+	else if(text.match(CTypes.CLONER[2])) type = CTypes.CLONER;
+	else if(text.match(CTypes.DEFLECT_L[2])) type = CTypes.DEFLECT_L;
+	else if(text.match(CTypes.DEFLECT_R[2])) type = CTypes.DEFLECT_R;
+	else if(text.match(CTypes.INCREMENT[2])) type = CTypes.INCREMENT;
+	else if(text.match(CTypes.DECREMENT[2])) type = CTypes.DECREMENT;
+	else if(text.match(CTypes.PORTAL[2])) type = CTypes.PORTAL;
+	else if(text.match(CTypes.SYNCHRONISER[2])) type = CTypes.SYNCHRONISER;
+	else if(text.match(CTypes.LESSTHAN[2])) type = CTypes.LESSTHAN;
+	else if(text.match(CTypes.GREATERTHAN[2])) type = CTypes.GREATERTHAN;
+	else if(text.match(CTypes.EQUALTO[2])) type = CTypes.EQUALTO;
+	else if(text.match(CTypes.RANDOM[2])) type = CTypes.RANDOM;
+	else if(text.match(CTypes.NAMEDSUBR[2])) type = CTypes.NAMEDSUBR, value = text;
+	else if(text.match(CTypes.INPUT[2])) type = CTypes.INPUT;
+	else if(text.match(CTypes.OUTPUT[2])) type = CTypes.OUTPUT;
+	else if(text.match(CTypes.TERMINATE[2])) type = CTypes.TERMINATE;
+	else if(text.match(CTypes.HEXLITERAL[2])) type = CTypes.HEXLITERAL, value = parseInt(text, 16); 
 	else if(text.length == 1 && hex_ascii){
 		type = CTypes.HEXLITERAL;
 		if(no_nbsp && text == '\xA0')
 			text = ' ';
 		value = text.charCodeAt(0) % 256;
-	}else if(text.match(/^[A-Z][a-z]$/) || text == 'MB') type = CTypes.NAMEDSUBR, value = text;
-	else type = CTypes.INVALID, value = text;
+	}else type = CTypes.INVALID, value = text;
 	this.type = type;
 	this.value = value;
 };
@@ -87,18 +78,18 @@ Cell.prototype.toString = function(html){
 		case CTypes.DEFLECT_R[0]:
 		case CTypes.INCREMENT[0]:
 		case CTypes.DECREMENT[0]:
-			return this.type[2];
-		case CTypes.TELEPORTER[0]:
-		case CTypes.PAUSE[0]:
+		case CTypes.TERMINATE[0]:
+			return this.type[3];
+		case CTypes.PORTAL[0]:
+		case CTypes.SYNCHRONISER[0]:
 		case CTypes.LESSTHAN[0]:
 		case CTypes.GREATERTHAN[0]:
 		case CTypes.EQUALTO[0]:
 		case CTypes.RANDOM[0]:
-		case CTypes.SUBROUTINE[0]:
+		//case CTypes.SUBROUTINE[0]:
 		case CTypes.INPUT[0]:
 		case CTypes.OUTPUT[0]:
-		case CTypes.OUTPUTEXIT[0]:
-			return this.type[2].substr(0,1) + this.value;
+			return this.type[3] + this.value;
 		case CTypes.HEXLITERAL[0]:
 			if(hex_ascii && html) return String.fromCharCode(this.value);
 			else return ('00'+this.value.toString(16)).substr(-2).toUpperCase();
