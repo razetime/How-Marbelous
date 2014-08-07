@@ -185,7 +185,7 @@ function parseBoard(string, abbr, id){
 		raw[h] = raw[h].trim().split(' ');
 		w = Math.max(raw[h].length, w);
 	}
-	var board = new Board(h, w, 'Board', abbr, id);
+	var board = new Board(w, h, 'Board', abbr, id);
 	for(var i = 0, j; i < raw.length; ++i){
 		for(j = 0; j < raw[i].length; ++j)
 			board.set(i,j,new Cell(raw[i][j]));
@@ -195,12 +195,14 @@ function parseBoard(string, abbr, id){
 	return board;
 }
 function parseBoards(string){
-	var raw = string.split(':');
-	raw.unshift('MB');
+	var raw = ('MB:\n'+string).split(/([^\n]*):/);
+	// empty element at raw[0]; remove
+	raw.splice(0, 1);
 	
 	var boards = [];
-	for(var i = 0; i < raw.length/2; ++i)
+	for(var i = 0; i < raw.length/2; ++i){
 		boards.push(parseBoard(raw[2*i+1], raw[2*i], i));
+	}
 	
 	return boards;
 }
@@ -287,7 +289,7 @@ function redrawGrid(){
 function redrawSource(){
 	var src = boards[0].toString();
 	for(var i = 1; i < boards.length; ++i){
-		src += boards[i].getAbbr() + '\n';
+		src += boards[i].getAbbr() + ':\n';
 		src += boards[i].toString();
 	}
 	var textarea = document.createElement('textarea');
