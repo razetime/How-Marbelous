@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>How Marbelous</title>
+		<link rel="stylesheet" type="text/css" href="marbelous.css" />
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+		<script src="marbelous.js"></script>
+	</head>
+	<body>
+		<header>
+			<h1>How Marbelous!</h1>
+		</header>
+		<main>
+			<div id="main1">
+				<div id="container"></div>
+			</div>
+			<div id="main2">
+				<!-- not implemented -->
+				<p>Boards: <select id="active_board" disabled="disabled">
+					<option value="0" data-name="Main Board" data-abbr="MB" data-num="00">Main Board (MB/00)</option>
+				</select></p>
+				<!-- not implemented -->
+				<p><input type="button" id="new_board" value="New Board" disabled="disabled" /></p>
+				<p><input type="button" id="grid_source_toggle" value="View Marbelous Source" /></p>
+				<p><input type="checkbox" id="hex_ascii"/>Display hex as characters</p>
+				<p><input type="checkbox" id="no_nbsp"/>Convert non-breaking spaces (0xA0) to space (0x20)</p>
+			</div>
+		</main>
+		<!--div>
+			<h1>Marbelous Source:</h1>
+			<textarea id="board_src"></textarea><br />
+			<input type="checkbox" id="hex_ascii" /><label for="hex_ascii">Display hex literals as characters (to be fixed)</label><br />
+			<input type="checkbox" id="no_nbsp" /><label for="no_nbsp">Replace non-breaking-space (0xA0) with space (0x20)</label><br />
+			
+		</div-->
+	</body>
+</html>

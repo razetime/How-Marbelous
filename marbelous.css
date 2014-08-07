@@ -1,0 +1,90 @@
+/** Some icons would be great **/
+.cell-nothing { 	background: lightgrey; }
+.cell-trashbin { background: darkgrey; }
+.cell-cloner { background: lightblue; }
+.cell-deflector-left{ background: lightgreen; }
+.cell-deflector-right { background: lightgreen; }
+.cell-incrementor { 	background: greenyellow; }
+.cell-decrementor { 	background: lightcoral; }
+.cell-teleporter { 	background: azure; }
+.cell-pause { 	background: palegoldenrod; }
+.cell-less-than { 	background: springgreen; }
+.cell-greater-than { 	background: tomato; }
+.cell-equal-to { 	background: turquoise; }
+.cell-random { 	background: seashell; }
+.cell-subroutine { 	background: palevioletred; }
+.cell-input { 	background: yellow; }
+.cell-output { 	background: green; }
+.cell-output-exit { 	background: orchid; }
+.cell-hex-literal { 	background: lavender; }
+.cell-invalid { 	background: red; }
+
+table {
+	font-size: 20px;
+}
+table, tr, td{
+	padding: 0;
+	margin: 0;
+	border-collapse: collapse;
+}
+td{
+	vertical-align: middle;
+	border: 1px solid grey;
+	height: 40px;
+	width: 40px;
+	min-height: 40px;
+	min-width: 40px;
+	max-height: 40px;
+	max-width: 40px;
+}
+
+html, body{
+	height: 100%;
+	overflow: hidden;
+	text-align: center;
+	margin: 0;
+}
+
+header {
+	height: 7%;
+}
+h1, p {
+	margin: 0;
+	padding: 0;
+}
+p {
+	display: inline-block;
+	margin-right: 15px;
+}
+
+main {
+	height: 93%;
+}
+#main1{
+	height: 92%;
+	background: lightblue;
+}
+#container {
+	height: 100%;
+	overflow: auto;
+}
+#main2{
+	height: 8%;
+	text-align: left;
+	margin-left: 15px;
+}
+#main2 > p{
+	margin-top: 15px;
+}
+
+div > table{
+	margin-left: auto;
+	margin-right: auto;
+}
+
+textarea{
+	resize: none;
+	height: 80%;
+	width: 70%;
+	font
+}
