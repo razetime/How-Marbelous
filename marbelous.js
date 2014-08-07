@@ -120,6 +120,10 @@ function Board(w, h, nm, abr, i){
 	this.name = nm;
 	this.abbr = abr;
 	this.id = i;
+	this.comment = null;
+	this.rowcomments = [];
+	for(var i = 0; i < this.height; ++i)
+		this.rowcomments[i] = null;
 };
 Board.prototype.getName = function(){
 	return this.name;
@@ -136,16 +140,31 @@ Board.prototype.getHeight = function(){
 Board.prototype.getWidth = function(){
 	return this.width;
 };
+Board.prototype.getComments = function(){
+	return this.comment;
+};
+Board.prototype.getRowComments = function(row){
+	return this.rowcomments[row];
+}
+Board.prototype.setComments = function(comment){
+	this.comment = comment;
+};
+Board.prototype.setRowComments = function(row, comment){
+	this.rowcomments[row] = comment;
+}
 Board.prototype.toString = function(){
 	var out = '';
 	for(var j = 0; j < this.height; ++j){
 		for(var i = 0; i < this.width; ++i){
 			out += this.cells[i][j].toString(false) + ' ';
 		}
+		if(this.getRowComments(j) != null)
+			out += '#' + this.getRowComments(j);
 		out += '\n';
 	}
 	return out;
 };
+// todo: add comments to html
 Board.prototype.toHTML = function(){
 	var table = document.createElement('table');
 	for(var j = 0; j < this.height; ++j){
@@ -177,31 +196,45 @@ Board.prototype.set = function(x,y,val){
 };
 // Assumes format is space separated
 function parseBoard(string, abbr, id){
+debugger;
 	// temp alternates name and content; move to object
 	var raw = string.trim().split('\n'); 
 	var h, w = 0;
 	
 	for(h = 0; h < raw.length; ++h){	
-		raw[h] = raw[h].trim().split(' ');
-		w = Math.max(raw[h].length, w);
+		raw[h] = raw[h].trim().split('#');
+		raw[h][0] = raw[h][0].trim().split(' ');
+		w = Math.max(raw[h][0].length, w);
 	}
 	var board = new Board(w, h, 'Board', abbr, id);
 	for(var i = 0, j; i < raw.length; ++i){
-		for(j = 0; j < raw[i].length; ++j)
-			board.set(i,j,new Cell(raw[i][j]));
+		for(j = 0; j < raw[i][0].length; ++j)
+			board.set(i,j,new Cell(raw[i][0][j]));
 		for(; j < w; ++j)
 			board.set(i,j,new Cell('..'));
+		if(raw[i].length > 1)
+			board.setRowComments(i, raw[i][1]);
 	}
 	return board;
 }
 function parseBoards(string){
-	var raw = ('MB:\n'+string).split(/([^\n]*):/);
+	var raw;
+	raw = ('MB:\n'+string.trim()).split(/([^\n]*):/);
 	// empty element at raw[0]; remove
 	raw.splice(0, 1);
 	
 	var boards = [];
 	for(var i = 0; i < raw.length/2; ++i){
-		boards.push(parseBoard(raw[2*i+1], raw[2*i], i));
+		var tmp;
+		raw[2*i+1] = raw[2*i+1].trim();
+		if(raw[2*i+1].charAt(0) == '#'){
+			var q = raw[2*i+1].indexOf('\n');
+			tmp = [raw[2*i+1].substr(q+1),raw[2*i+1].substr(1, q)];
+		}else tmp = [raw[2*i+1]];
+		var b = parseBoard(tmp[0], raw[2*i], i);
+		if(tmp.length > 1)
+			b.setComments(tmp[1]);
+		boards.push(b);
 	}
 	
 	return boards;
@@ -287,10 +320,15 @@ function redrawGrid(){
 	gridHandlers();
 }
 function redrawSource(){
-	var src = boards[0].toString();
+	var src = '';
+	if(boards[0].getComments() != null)
+		src += '#' + boards[0].getComments();
+	src += boards[0].toString();
 	for(var i = 1; i < boards.length; ++i){
-		src += boards[i].getAbbr() + ':\n';
-		src += boards[i].toString();
+		src += boards[i].getAbbr() + ':';
+		if(boards[i].getComments() != null)
+			src += ' #' + boards[i].getComments();
+		src += '\n' + boards[i].toString();
 	}
 	var textarea = document.createElement('textarea');
 	textarea.setAttribute('id','marbelous-source');
