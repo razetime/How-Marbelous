@@ -166,12 +166,12 @@ Board.prototype.toHTML = function(){
 	return table;
 };
 Board.prototype.get = function(x,y){
-	if(0 <= x && x <= this.width && 0 <= y && y <= this.height)
+	if(0 <= x && x <= this.height && 0 <= y && y <= this.width)
 		return this.cells[y][x];
 	else return null;
 };
 Board.prototype.set = function(x,y,val){
-	if(0 <= x && x <= this.width && 0 <= y && y <= this.height)
+	if(0 <= x && x <= this.height && 0 <= y && y <= this.width)
 		return this.cells[y][x] = val;
 	else return null;
 };
@@ -180,7 +180,7 @@ function parseBoard(string, abbr, id){
 	// temp alternates name and content; move to object
 	var raw = string.trim().split('\n'); 
 	var h, w = 0;
-	debugger;
+	
 	for(h = 0; h < raw.length; ++h){	
 		raw[h] = raw[h].trim().split(' ');
 		w = Math.max(raw[h].length, w);
