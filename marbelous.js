@@ -63,7 +63,7 @@ function Cell(text){
 		if(no_nbsp && text == '\xA0')
 			text = ' ';
 		value = text.charCodeAt(0) % 256;
-	}else if(text.match(/^[A-Z][a-z]$/)) type = CTypes.NAMEDSUBR, value = text;
+	}else if(text.match(/^[A-Z][a-z]$/) || text == 'MB') type = CTypes.NAMEDSUBR, value = text;
 	else type = CTypes.INVALID, value = text;
 	this.type = type;
 	this.value = value;
