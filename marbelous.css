@@ -6,8 +6,8 @@
 .cell-deflector-right { background: lightgreen; }
 .cell-incrementor { 	background: greenyellow; }
 .cell-decrementor { 	background: lightcoral; }
-.cell-teleporter { 	background: azure; }
-.cell-pause { 	background: palegoldenrod; }
+.cell-portal { 	background: azure; }
+.cell-synchroniser { 	background: palegoldenrod; }
 .cell-less-than { 	background: springgreen; }
 .cell-greater-than { 	background: tomato; }
 .cell-equal-to { 	background: turquoise; }
@@ -15,7 +15,7 @@
 .cell-subroutine { 	background: palevioletred; }
 .cell-input { 	background: yellow; }
 .cell-output { 	background: green; }
-.cell-output-exit { 	background: orchid; }
+.cell-terminate { 	background: orchid; }
 .cell-hex-literal { 	background: lavender; }
 .cell-invalid { 	background: red; }
 

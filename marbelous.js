@@ -7,7 +7,7 @@ var CTypes = Object.freeze({
 	TRASHBIN:		[1, 'trashbin', /^\\\/$/, '\\/'],
 	CLONER:			[2, 'cloner', /^\/\\$/, '/\\'],
 	DEFLECT_L:		[3, 'deflector-left', /^\/\/$/, '//'],
-	DEFLECT_R:		[4, 'defector-right', /^\\\\$/, '\\\\'],
+	DEFLECT_R:		[4, 'deflector-right', /^\\\\$/, '\\\\'],
 	INCREMENT:		[5, 'incrementor', /^\+\+$/, '++'],
 	DECREMENT:		[6, 'decrementor', /^\-\-$/, '--'],
 	PORTAL:			[7, 'portal', /^P[A-Z\d]$/, 'P'],
@@ -18,12 +18,12 @@ var CTypes = Object.freeze({
 	RANDOM:			[12,'random', /^R[A-Z\d\?]$/, 'R'],
 //	SUBROUTINE:		[13,'subroutine', 'S?'],
 		// todo: add validation for named subroutines from table
-	NAMEDSUBR:		[14,'subroutine', /^[A-Za-z]{2}$/, '??'],
 	INPUT:			[15,'input', /^I[A-Z\d]$/, 'I'],
 	OUTPUT:			[16,'output', /^O[A-Z\d\>\<]$/, 'O'],
 	TERMINATE:		[17,'terminate', /^##$/, '##'],
 	HEXLITERAL:		[18,'hex-literal', /^[A-Z\d]{2}$/, '??'],
-	INVALID: 		[19, 'invalid', /^(Default Value){10}$/, '??'],
+	NAMEDSUBR:		[19,'subroutine', /^[A-Za-z\d]{2}$/, '??'],
+	INVALID: 		[99,'invalid', /^(Default Value){10}$/, '??'],
 });
 function Cell(text){
 	var value = text.substr(1,1), type;
@@ -45,7 +45,6 @@ function Cell(text){
 	else if(text.match(CTypes.GREATERTHAN[2])) type = CTypes.GREATERTHAN;
 	else if(text.match(CTypes.EQUALTO[2])) type = CTypes.EQUALTO;
 	else if(text.match(CTypes.RANDOM[2])) type = CTypes.RANDOM;
-	else if(text.match(CTypes.NAMEDSUBR[2])) type = CTypes.NAMEDSUBR, value = text;
 	else if(text.match(CTypes.INPUT[2])) type = CTypes.INPUT;
 	else if(text.match(CTypes.OUTPUT[2])) type = CTypes.OUTPUT;
 	else if(text.match(CTypes.TERMINATE[2])) type = CTypes.TERMINATE;
@@ -55,7 +54,9 @@ function Cell(text){
 		if(no_nbsp && text == '\xA0')
 			text = ' ';
 		value = text.charCodeAt(0) % 256;
-	}else type = CTypes.INVALID, value = text;
+	}
+	else if(text.match(CTypes.NAMEDSUBR[2])) type = CTypes.NAMEDSUBR, value = text;
+	else type = CTypes.INVALID, value = text;
 	this.type = type;
 	this.value = value;
 };
@@ -210,7 +211,7 @@ debugger;
 }
 function parseBoards(string){
 	var raw;
-	raw = ('MB:\n'+string.trim()).split(/([^\n]*):/);
+	raw = (':MB\n'+string.trim()).split(/:([^\n]*)/);
 	// empty element at raw[0]; remove
 	raw.splice(0, 1);
 	
@@ -316,7 +317,7 @@ function redrawSource(){
 		src += '#' + boards[0].getComments();
 	src += boards[0].toString();
 	for(var i = 1; i < boards.length; ++i){
-		src += boards[i].getAbbr() + ':';
+		src += ':' + boards[i].getAbbr();
 		if(boards[i].getComments() != null)
 			src += ' #' + boards[i].getComments();
 		src += '\n' + boards[i].toString();
