@@ -334,7 +334,6 @@ function updateSubroutine(){
 		// get board as a string w/o comments
 		var bs = boards[i].toString(false).replace(/ /g, '').split('\n');
 		for(var j = bs.length; j--; ){
-		debugger;
 			for(var k = subroutines.length; k--; ){
 				var ind = bs[j].indexOf(subroutines[k].name);
 				if(ind != -1 && !(ind % 2)){
@@ -361,8 +360,9 @@ function gridHandlers(){
 		if(e.ctrlKey)
 			select_tile($(this).attr('data-row'), $(this).attr('data-col'));
 		if($(this).hasClass('focused'))
-			$('#cell-'+$(this).attr('data-row')+'-'+$(this).attr('data-col')).attr('contenteditable', true).focus();
-		focus_tile($(this).attr('data-row'), $(this).attr('data-col'), !e.ctrlKey);
+			$(this).attr('contenteditable', true).focus();
+		else
+			focus_tile($(this).attr('data-row'), $(this).attr('data-col'), !e.ctrlKey);
 	}).on('focus', function(){
 		if($(this).text() == '..') $(this).text('');
 	}).on('blur', function(){
@@ -455,8 +455,10 @@ function gridDocHandler(){
 		//var c = String.fromCharCode(e.which);
 		var row = active_tile[0], col = active_tile[1];
 		//if(c.match(/^[A-Z\d\\\/\+\-=#]$/i))
-		focus_tile(row, col, true);
-		$('#cell-'+row+'-'+col).attr('contenteditable', true).focus();
+		if($('#cell-'+row+'-'+col).attr('contenteditable') == 'false'){
+			focus_tile(row, col, true);
+			$('#cell-'+row+'-'+col).attr('contenteditable', true).focus();
+		}
 	});;
 }
 function srcDocHandler(){
