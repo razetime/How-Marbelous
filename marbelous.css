@@ -88,3 +88,20 @@ textarea{
 	width: 70%;
 	font
 }
+
+.focused {
+	outline-color: rgb(45, 114, 224) !important;
+	outline-style: auto !important;
+	outline-width: 5px !important;
+}
+.selected {
+	outline-color: rgb(19, 148, 24) !important;
+	outline-style: auto !important;
+	outline-width: 5px !important;
+}
+.selected.focused {
+	outline-color: rgb(19, 73, 148) !important;
+	outline-style: auto !important;
+	outline-width: 5px !important;
+}
+
