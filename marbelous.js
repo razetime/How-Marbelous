@@ -415,7 +415,14 @@ function gridDocHandler(){
 		// shift+tab: reverse
 		if(code == 9 && e.shiftKey) code = -1;
 		switch(code){
+			case 13: // enter
+				var p = $('#cell-'+row+'-'+col);
+				if(p.is(':focus')) p.blur();
+				else p.click();
+			break;
 			case -1: // shift+tab
+				if(col == 0 && row > 0)
+					--row, col = boards[active_board].getWidth();
 			case 37: // left
 				if(col > 0){
 					focus_tile(row, col-1, false);
@@ -431,6 +438,8 @@ function gridDocHandler(){
 				}
 			break;
 			case 9: // tab
+				if(col == 0 && row < boards[active_board].getHeight() - 1)
+					++row, col = -1;
 			case 39: // right
 				if(col < boards[active_board].getWidth() - 1){
 					focus_tile(row, col+1, false);
@@ -438,7 +447,6 @@ function gridDocHandler(){
 					if(e.ctrlKey) select_tile(row, col);
 				}
 			break;
-			case 13: // return/enter
 			case 40: // down
 				if(row < boards[active_board].getHeight() - 1){
 					focus_tile(row+1, col, false);
