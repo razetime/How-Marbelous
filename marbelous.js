@@ -412,31 +412,42 @@ function gridDocHandler(){
 	$(document).on('keydown', function(e){
 		var code = e.which;
 		var row = active_tile[0], col = active_tile[1];
+		// shift+tab: reverse
+		if(code == 9 && e.shiftKey) code = -1;
 		switch(code){
+			case -1: // shift+tab
 			case 37: // left
 				if(col > 0){
-					focus_tile(row, col-1);
+					focus_tile(row, col-1, false);
+					// if ctrl, select current
+					if(e.ctrlKey) select_tile(row, col);
 				}
 			break;
 			case 38: // up
 				if(row > 0){
-					focus_tile(row-1, col);
+					focus_tile(row-1, col, false);
+					// if ctrl, select current
+					if(e.ctrlKey) select_tile(row, col);
 				}
 			break;
 			case 9: // tab
 			case 39: // right
 				if(col < boards[active_board].getWidth() - 1){
-					focus_tile(row, col+1);
+					focus_tile(row, col+1, false);
+					// if ctrl, select current
+					if(e.ctrlKey) select_tile(row, col);
 				}
 			break;
 			case 13: // return/enter
 			case 40: // down
 				if(row < boards[active_board].getHeight() - 1){
-					focus_tile(row+1, col);
+					focus_tile(row+1, col, false);
+					// if ctrl, select current
+					if(e.ctrlKey) select_tile(row, col);
 				}
 			break;
 		}
-		if(code == 13 || code == 9){
+		if(code == 13 || code == 9 || code == -1){
 			e.preventDefault();
 			return false;
 		}
@@ -444,6 +455,7 @@ function gridDocHandler(){
 		//var c = String.fromCharCode(e.which);
 		var row = active_tile[0], col = active_tile[1];
 		//if(c.match(/^[A-Z\d\\\/\+\-=#]$/i))
+		focus_tile(row, col, true);
 		$('#cell-'+row+'-'+col).attr('contenteditable', true).focus();
 	});;
 }
