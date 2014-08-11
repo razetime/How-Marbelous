@@ -96,7 +96,7 @@ Cell.prototype.toString = function(html){
 		case CTypes.NAMEDSUBR[0]:
 			return this.value.str.substr(this.value.offset, 2);
 		case CTypes.INVALID[0]:
-			return this.value;
+			return (".."+this.value).substr(-2);
 	}
 };
 Cell.prototype.copy = function(other){
@@ -247,7 +247,7 @@ function parseBoard(lines, name, index){
 }
 // does not handle subroutines
 function parseBoards(string){
-	var lines = (':MB\n'+string.trim()).split('\n').map(function(s){ return s.trim(); });
+	var lines = (':MB\n'+string.trim()).replace(/^\s*[\r\n]/gm,'').split('\n').map(function(s){ return s.trim(); });
 	var boards = [];
 	
 	var comments = [], boardstart = [];
@@ -325,7 +325,7 @@ function updateSubroutine(){
 		subroutines[i] = {};
 		subroutines[i].size = Math.max(1,boards[i].getInputs(),boards[i].getOutputs());
 		// set .name to repeated name, filling up 2*.size chars
-		subroutines[i].name = new Array(subroutines[i].size+1).join(boards[i].getName()).substr(0,2*subroutines[i].size);
+		subroutines[i].name = new Array(2*subroutines[i].size + 1).join(boards[i].getName()).substr(0,2*subroutines[i].size);
 	}
 	subroutines.sort(function(a,b){
 		return a.size - b.size;
@@ -336,6 +336,7 @@ function updateSubroutine(){
 		for(var j = bs.length; j--; ){
 			for(var k = subroutines.length; k--; ){
 				var ind = bs[j].indexOf(subroutines[k].name);
+				console.log(bs[j]);
 				if(ind != -1 && !(ind % 2)){
 					ind /= 2;
 					
@@ -497,7 +498,16 @@ $(document).ready(function(){
 		}else{ 
 			gridDocHandler();
 			// todo: check if failed
-			boards = parseBoards($('#marbelous-source').val());
+			if($('#marbelous-source').val().trim() == ""){
+				alert('No board detected in marbelous source!');
+				return;
+			}
+			var bs_new = parseBoards($('#marbelous-source').val());
+			if(bs_new.length == 0){
+				alert('No board detected in marbelous source!');
+				return;
+			}
+			boards = bs_new;
 			updateSubroutine();
 			$('#hex_ascii').attr('disabled', false);
 			$('#no_nbsp').attr('disabled', false);
