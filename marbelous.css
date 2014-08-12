@@ -17,6 +17,13 @@
 .cell-output { 	background: green; }
 .cell-terminate { 	background: orchid; }
 .cell-hex-literal { 	background: lavender; }
+.cell-left-shift { 	background: bisque; }
+.cell-right-shift { 	background: burlywood; }
+.cell-bit-check { 	background: powderblue; }
+.cell-bitwise-not { 	background: salmon; }
+.cell-constant-add { 	background: mediumspringgreen; }
+.cell-constant-sub { 	background: mediumturquoise; }
+.cell-stdin { 	background: chartreuse; }
 .cell-invalid { 	background: red; }
 
 table {

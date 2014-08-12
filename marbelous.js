@@ -10,19 +10,26 @@ var CTypes = Object.freeze({
 	DEFLECT_R:		[4, 'deflector-right', /^\\\\$/, '\\\\'],
 	INCREMENT:		[5, 'incrementor', /^\+\+$/, '++'],
 	DECREMENT:		[6, 'decrementor', /^\-\-$/, '--'],
-	PORTAL:			[7, 'portal', /^P[A-Z\d]$/, 'P'],
-	SYNCHRONISER:	[8, 'synchroniser', /^S[A-Z\d]$/, 'S'],
+	PORTAL:			[7, 'portal', /^@[A-Z\d]$/, '@'],
+	SYNCHRONISER:	[8, 'synchroniser', /^&[A-Z\d]$/, '&'],
 	LESSTHAN:		[9, 'less-than', /^\<[A-Z\d]$/, '<'],
 	GREATERTHAN:	[10,'greater-than', /^\>[A-Z\d]$/, '>'],
 	EQUALTO:		[11,'equal-to', /^=[A-Z\d]$/, '='],
-	RANDOM:			[12,'random', /^R[A-Z\d\?]$/, 'R'],
+	RANDOM:			[12,'random', /^\?[A-Z\d\?]$/, '?'],
 //	SUBROUTINE:		[13,'subroutine', 'S?'],
-	INPUT:			[15,'input', /^I[A-Z\d]$/, 'I'],
-	OUTPUT:			[16,'output', /^O[A-Z\d\>\<]$/, 'O'],
-	TERMINATE:		[17,'terminate', /^XX$/, 'XX'],
+	INPUT:			[15,'input', /^\}[A-Z\d]$/, '}'],
+	OUTPUT:			[16,'output', /^\{[A-Z\d\>\<]$/, '{'],
+	TERMINATE:		[17,'terminate', /^!!$/, '!!'],
 	HEXLITERAL:		[18,'hex-literal', /^[A-F\d]{2}$/, '??'],
 	// must be manually created
 	NAMEDSUBR:		[19,'subroutine', /^(?!x)x$/, '??'],
+	LSHIFT:			[20,'left-shift', /^<<$/, '<<'],
+	RSHIFT:			[21,'right-shift', /^>>$/, '>>'],
+	BITCHECK:		[22,'bit-check', /^\^[0-7]$/, '^'],
+	BITNOT:			[23,'bitwise-not', /^~~$/, '~~'],
+	CONSTANT_ADD:	[24,'constant-add', /^\+[A-Z\d]$/, '+'],
+	CONSTANT_SUB:	[25,'constant-sub', /^\-[A-Z\d]$/, '-'],
+	STDIN:			[26,'stdin', /^\[\[$/, '[['],
 	INVALID: 		[99,'invalid', /^(?!x)x$/, '??'],
 });
 function Cell(text){
@@ -48,6 +55,13 @@ function Cell(text){
 	else if(text.match(CTypes.INPUT[2])) type = CTypes.INPUT;
 	else if(text.match(CTypes.OUTPUT[2])) type = CTypes.OUTPUT;
 	else if(text.match(CTypes.TERMINATE[2])) type = CTypes.TERMINATE;
+	else if(text.match(CTypes.LSHIFT[2])) type = CTypes.LSHIFT;
+	else if(text.match(CTypes.RSHIFT[2])) type = CTypes.RSHIFT;
+	else if(text.match(CTypes.BITCHECK[2])) type = CTypes.BITCHECK;
+	else if(text.match(CTypes.BITNOT[2])) type = CTypes.BITNOT;
+	else if(text.match(CTypes.CONSTANT_ADD[2])) type = CTypes.CONSTANT_ADD;
+	else if(text.match(CTypes.CONSTANT_SUB[2])) type = CTypes.CONSTANT_SUB;
+	else if(text.match(CTypes.STDIN[2])) type = CTypes.STDIN;
 	else if(text.match(CTypes.HEXLITERAL[2])) type = CTypes.HEXLITERAL, value = parseInt(text, 16); 
 	else if(text.length == 1 && hex_ascii){
 		type = CTypes.HEXLITERAL;
@@ -79,6 +93,10 @@ Cell.prototype.toString = function(html){
 		case CTypes.INCREMENT[0]:
 		case CTypes.DECREMENT[0]:
 		case CTypes.TERMINATE[0]:
+		case CTypes.LSHIFT[0]:
+		case CTypes.RSHIFT[0]:
+		case CTypes.BITNOT[0]:
+		case CTypes.STDIN[0]:
 			return this.type[3];
 		case CTypes.PORTAL[0]:
 		case CTypes.SYNCHRONISER[0]:
@@ -89,6 +107,9 @@ Cell.prototype.toString = function(html){
 		//case CTypes.SUBROUTINE[0]:
 		case CTypes.INPUT[0]:
 		case CTypes.OUTPUT[0]:
+		case CTypes.BITCHECK[0]:
+		case CTypes.CONSTANT_ADD[0]:
+		case CTypes.CONSTANT_SUB[0]:
 			return this.type[3] + this.value;
 		case CTypes.HEXLITERAL[0]:
 			if(hex_ascii && html) return String.fromCharCode(this.value);
@@ -348,7 +369,7 @@ function updateSubroutine(){
 						arr[q].value = { cells: arr, str: subroutines[k].name, offset: 2*q };
 					}
 					
-					bs[j]=bs[j].replace(subroutines[k].name, "  ");
+					bs[j]=bs[j].replace(subroutines[k].name, new Array(subroutines[k].name.length+1).join(' '));
 					++k; // allow for this name to be searched again
 				}
 			}
@@ -439,7 +460,7 @@ function gridDocHandler(){
 				}
 			break;
 			case 9: // tab
-				if(col == 0 && row < boards[active_board].getHeight() - 1)
+				if(col == boards[active_board].getWidth() - 1 && row < boards[active_board].getHeight() - 1)
 					++row, col = -1;
 			case 39: // right
 				if(col < boards[active_board].getWidth() - 1){
