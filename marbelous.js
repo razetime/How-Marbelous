@@ -434,7 +434,7 @@ function gridHandlers(){
 			// find cell displacement; truncated division
 			// +20: move if halfway to next cell
 			var calc_disp = function(p){
-				return ((p+20*Math.sign(p))/40)|0;
+				return ((p+20*Math.abs(p)/p)/40)|0;
 			};
 			var x_disp = calc_disp(ui.position.left);
 			var y_disp = calc_disp(ui.position.top);
