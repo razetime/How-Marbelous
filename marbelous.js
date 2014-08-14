@@ -393,14 +393,14 @@ function gridHandlers(){
 			$(this).removeClass('noclick');
 			return;
 		}
-		if(e.ctrlKey){
+		if(e.ctrlKey || e.metaKey){
 			if(!$('#cell-'+active_tile[0]+'-'+active_tile[1]).hasClass('selected'))
 				select_tile(active_tile[0], active_tile[1]);
 			select_tile($(this).attr('data-row'), $(this).attr('data-col'));
 		}else if($(this).hasClass('focused'))
 			$(this).attr('contenteditable', true).focus();
 		else
-			focus_tile($(this).attr('data-row'), $(this).attr('data-col'), !e.ctrlKey);
+			focus_tile($(this).attr('data-row'), $(this).attr('data-col'), !(e.ctrlKey || e.metaKey));
 	}).on('focus', function(){
 		if($(this).text() == '..') $(this).text('');
 	}).on('blur', function(){
@@ -522,14 +522,14 @@ function gridDocHandler(){
 				if(col > 0){
 					focus_tile(row, col-1, false);
 					// if ctrl, select current
-					if(e.ctrlKey) select_tile(row, col);
+					if(e.ctrlKey || e.metaKey) select_tile(row, col);
 				}
 			break;
 			case 38: // up
 				if(row > 0){
 					focus_tile(row-1, col, false);
 					// if ctrl, select current
-					if(e.ctrlKey) select_tile(row, col);
+					if(e.ctrlKey || e.metaKey) select_tile(row, col);
 				}
 			break;
 			case 9: // tab
@@ -539,14 +539,14 @@ function gridDocHandler(){
 				if(col < boards[active_board].getWidth() - 1){
 					focus_tile(row, col+1, false);
 					// if ctrl, select current
-					if(e.ctrlKey) select_tile(row, col);
+					if(e.ctrlKey || e.metaKey) select_tile(row, col);
 				}
 			break;
 			case 40: // down
 				if(row < boards[active_board].getHeight() - 1){
 					focus_tile(row+1, col, false);
 					// if ctrl, select current
-					if(e.ctrlKey) select_tile(row, col);
+					if(e.ctrlKey || e.metaKey) select_tile(row, col);
 				}
 			break;
 		}
