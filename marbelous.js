@@ -320,9 +320,12 @@ function focus_tile(i,j,clear_selected){
 	if(tile.is(':focus'))
 		tile.blur(), tile=$('#cell-'+active_tile[0]+'-'+active_tile[1]);
 	tile.removeClass('focused');
+	if(!tile.hasClass('selected'))
+		tile.draggable('disable');
 	active_tile = [parseInt(i),parseInt(j)];
 	tile = $('#cell-'+active_tile[0]+'-'+active_tile[1]);
 	tile.addClass('focused');
+	tile.draggable('enable');
 }
 function select_tile(i,j,update){
 	if(typeof update == 'undefined')
@@ -411,6 +414,8 @@ function gridHandlers(){
 		start: function(event, ui){
 			$(this).addClass('noclick');
 			focus_tile($(this).attr('data-row'),$(this).attr('data-col'),false);
+			if(!$(this).hasClass('selected'))
+				select_tile($(this).attr('data-row'),$(this).attr('data-col'));
 		},
 		drag: function(event, ui){
 			for(var i = selected_tiles.length; i--; )
