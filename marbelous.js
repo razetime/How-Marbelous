@@ -324,18 +324,21 @@ function focus_tile(i,j,clear_selected){
 	tile = $('#cell-'+active_tile[0]+'-'+active_tile[1]);
 	tile.addClass('focused');
 }
-function select_tile(i,j){
+function select_tile(i,j,update){
+	if(typeof update == 'undefined')
+		update = false;
 	var q;
 	for(q = selected_tiles.length; q--; )
 		if(selected_tiles[q][0] == i && selected_tiles[q][1] == j)
 			break;
 	i = parseInt(i), j = parseInt(j);
-	if(q != -1){
+	if(q != -1 && !update){
 		selected_tiles.splice(q, 1);
-		$('#cell-'+i+'-'+j).removeClass('selected');
+		$('#cell-'+i+'-'+j).removeClass('selected').draggable('disable');
 	}else{
-		$('#cell-'+i+'-'+j).addClass('selected');
-		selected_tiles[selected_tiles.length] = [i, j];
+		$('#cell-'+i+'-'+j).addClass('selected').draggable('enable');
+		if(!update)
+			selected_tiles[selected_tiles.length] = [i, j];
 	}
 }
 
@@ -357,7 +360,6 @@ function updateSubroutine(){
 		for(var j = bs.length; j--; ){
 			for(var k = subroutines.length; k--; ){
 				var ind = bs[j].indexOf(subroutines[k].name);
-				console.log(bs[j]);
 				if(ind != -1 && !(ind % 2)){
 					ind /= 2;
 					
@@ -379,9 +381,15 @@ function updateSubroutine(){
 // sets up grid handlers
 function gridHandlers(){
 	$('td').on('click', function(e){
-		if(e.ctrlKey)
+		if($(this).hasClass('noclick')){
+			$(this).removeClass('noclick');
+			return;
+		}
+		if(e.ctrlKey){
+			if(!$('#cell-'+active_tile[0]+'-'+active_tile[1]).hasClass('selected'))
+				select_tile(active_tile[0], active_tile[1]);
 			select_tile($(this).attr('data-row'), $(this).attr('data-col'));
-		if($(this).hasClass('focused'))
+		}else if($(this).hasClass('focused'))
 			$(this).attr('contenteditable', true).focus();
 		else
 			focus_tile($(this).attr('data-row'), $(this).attr('data-col'), !e.ctrlKey);
@@ -398,12 +406,66 @@ function gridHandlers(){
 		$this.removeClass().addClass(boards[active_board].get(row, col).getClass());
 		updateSubroutine(), redrawGrid();
 		$this.attr('contenteditable',false);
-	});
+	}).draggable({
+		containment: $('table'),
+		start: function(event, ui){
+			$(this).addClass('noclick');
+			focus_tile($(this).attr('data-row'),$(this).attr('data-col'),false);
+		},
+		drag: function(event, ui){
+			for(var i = selected_tiles.length; i--; )
+				$('#cell-'+selected_tiles[i][0]+'-'+selected_tiles[i][1]).css({
+					top: ui.position.top,
+					left: ui.position.left,
+				});
+		},
+		stop: function(event, ui){
+			// 40px cells
+			// find cell displacement; truncated division
+			// +20: move if halfway to next cell
+			var calc_disp = function(p){
+				return ((p+20*Math.sign(p))/40)|0;
+			};
+			var x_disp = calc_disp(ui.position.left);
+			var y_disp = calc_disp(ui.position.top);
+			var clamp = function(a,min,max){
+				return Math.min(Math.max(a,min),max);
+			};
+			// save moved data
+			var tmp = [];
+			for(var i = selected_tiles.length; i--; ){
+				var tile = $('#cell-'+selected_tiles[i][0]+'-'+selected_tiles[i][1]);
+				var x = parseInt(tile.attr('data-col')),
+					y = parseInt(tile.attr('data-row'));
+				var tmpcell = new Cell('..');
+				$.extend(tmpcell, boards[active_board].get(y,x));
+				boards[active_board].set(y,x,new Cell('..'));
+				tmp[tmp.length] = [x, y, tmpcell];
+				// update selected
+				selected_tiles[i][0] = clamp(selected_tiles[i][0]+y_disp, 0, boards[active_board].getHeight() - 1);
+				selected_tiles[i][1] = clamp(selected_tiles[i][1]+x_disp, 0, boards[active_board].getWidth() - 1);
+			}
+			// update active
+			active_tile[0] = clamp(active_tile[0]+y_disp, 0, boards[active_board].getHeight() - 1);
+			active_tile[1] = clamp(active_tile[1]+x_disp, 0, boards[active_board].getWidth() - 1);
+			// update new cells
+			for(var i = tmp.length; i--; )
+				boards[active_board].set(
+					clamp(tmp[i][1]+y_disp, 0, boards[active_board].getHeight() - 1),
+					clamp(tmp[i][0]+x_disp, 0, boards[active_board].getWidth() - 1),
+					tmp[i][2]
+				);
+			redrawGrid();
+		},
+	}).draggable('disable');
 }
 
 function redrawGrid(){
 	$('#container').empty()[0].appendChild(boards[active_board].toHTML());
 	gridHandlers();
+	for(var i = selected_tiles.length; i--; )
+		select_tile(selected_tiles[i][0],selected_tiles[i][1],true);
+	focus_tile(active_tile[0], active_tile[1], false);
 }
 function redrawSource(){
 	var src = '';
@@ -489,7 +551,7 @@ function gridDocHandler(){
 			focus_tile(row, col, true);
 			$('#cell-'+row+'-'+col).attr('contenteditable', true).focus();
 		}
-	});;
+	});
 }
 function srcDocHandler(){
 	$(document).off('keydown').off('keyup');

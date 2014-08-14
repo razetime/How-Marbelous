@@ -43,6 +43,7 @@ td{
 	min-width: 40px;
 	max-height: 40px;
 	max-width: 40px;
+	z-index: 0;
 }
 
 html, body{
@@ -100,15 +101,20 @@ textarea{
 	outline-color: rgb(45, 114, 224) !important;
 	outline-style: auto !important;
 	outline-width: 5px !important;
+	z-index: 5000;
 }
 .selected {
 	outline-color: rgb(19, 148, 24) !important;
 	outline-style: auto !important;
 	outline-width: 5px !important;
+	z-index: 999;
 }
 .selected.focused {
 	outline-color: rgb(19, 73, 148) !important;
 	outline-style: auto !important;
 	outline-width: 5px !important;
+	z-index: 9999;
 }
-
+.ui-state-disabled{
+	opacity: 1;
+}
