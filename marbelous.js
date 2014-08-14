@@ -192,7 +192,7 @@ Board.prototype.toString = function(comments){
 			out += this.cells[i][j].toString(false) + ' ';
 		}
 		if(comments && this.getRowComments(j) != null)
-			out += '#' + this.getRowComments(j);
+			out += '# ' + this.getRowComments(j);
 		out += '\n';
 	}
 	return out;
@@ -238,7 +238,9 @@ Board.prototype.recalculateIO = function(){
 					inp = Math.max(inp, parseInt(this.cells[i][j].value) + 1);
 				break;
 				case CTypes.OUTPUT[0]:
-					out = Math.max(out, parseInt(this.cells[i][j].value) + 1);
+					// special cases: < and >
+					if(this.cells[i][j].value.match(/^[A-Z\d]$/))
+						out = Math.max(out, parseInt(this.cells[i][j].value) + 1);
 				break;
 			}
 		}
@@ -296,11 +298,14 @@ function parseBoards(string){
 			bcomment = lines[j].split(/#(.*)/)[1].trim() + '\n' + bcomment;
 		lines.splice(j--, 1);
 		for(; comments[j] && j > 0; --j){
-			bcomment = lines[j].substr(1) + bcomment;
+			bcomment = lines[j].split(/#(.*)/)[1].trim() + '\n' + bcomment;
 			lines.splice(j, 1);
 		}
+		bcomment = bcomment.trim();
 		// j now points to the start of the board information
 		boards[i] = parseBoard(lines.splice(j+1), bnames[i], i);
+		if(bcomment != "")
+			boards[i].setComments(bcomment);
 	}
 	return boards;
 }
@@ -475,18 +480,19 @@ function redrawGrid(){
 function redrawSource(){
 	var src = '';
 	if(boards[0].getComments() != null){
-		var r = boards[0].getComments().split('\n');
+		var r = boards[0].getComments().split('\n').splice(-1);
 		for(var j = 0; j < r.length; j++)
-			src += '#' + r[j] + '\n';
+			src += '# ' + r[j] + '\n';
 	}
 	src += boards[0].toString();
 	for(var i = 1; i < boards.length; ++i){
-		src += ':' + boards[i].getName() + '\n';
+		src += "\n";
 		if(boards[i].getComments() != null){
 			var r = boards[i].getComments().split('\n');
 			for(var j = 0; j < r.length; j++)
-				src += '#' + r[j] + '\n';
+				src += '# ' + r[j].trim() + '\n';
 		}
+		src += ':' + boards[i].getName() + '\n';
 		src += boards[i].toString();
 	}
 	var textarea = document.createElement('textarea');
