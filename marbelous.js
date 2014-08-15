@@ -2,7 +2,7 @@ var hex_ascii = false;
 var no_nbsp = false;
 var grid_active = true;
 
-var CTypes = Object.freeze({
+var CTypes = {
 	NOTHING:		[0, 'nothing', /^(|\.\.|\s{2})$/, '..'],
 	TRASHBIN:		[1, 'trashbin', /^\\\/$/, '\\/'],
 	CLONER:			[2, 'cloner', /^\/\\$/, '/\\'],
@@ -31,7 +31,7 @@ var CTypes = Object.freeze({
 	CONSTANT_SUB:	[25,'constant-sub', /^\-[A-Z\d]$/, '-'],
 	STDIN:			[26,'stdin', /^\[\[$/, '[['],
 	INVALID: 		[99,'invalid', /^(?!x)x$/, '??'],
-});
+};
 function Cell(text){
 	var value = text.substr(1,1), type;
 	if(text == '' || text.match(/^\s{2}$/)){
@@ -205,12 +205,14 @@ Board.prototype.toHTML = function(){
 		row.setAttribute('data-row', j);
 		for(var i = 0; i < this.width; ++i){
 			var td = document.createElement('td');
-			td.setAttribute('id', 'cell-'+j+'-'+i);
-			td.setAttribute('data-row', j);
-			td.setAttribute('data-col', i);
-			td.setAttribute('class', this.cells[i][j].getClass());
-			td.setAttribute('contenteditable',false);
-			td.appendChild(document.createTextNode(this.cells[i][j].toString(true)));
+			var div = document.createElement('div');
+			div.setAttribute('id', 'cell-'+j+'-'+i);
+			div.setAttribute('data-row', j);
+			div.setAttribute('data-col', i);
+			div.setAttribute('class', this.cells[i][j].getClass());
+			div.setAttribute('contenteditable',false);
+			div.appendChild(document.createTextNode(this.cells[i][j].toString(true)));
+			td.appendChild(div);
 			row.appendChild(td);
 		}
 		table.appendChild(row);
@@ -388,7 +390,7 @@ function updateSubroutine(){
 }
 // sets up grid handlers
 function gridHandlers(){
-	$('td').on('click', function(e){
+	$('td>div').on('click', function(e){
 		if($(this).hasClass('noclick')){
 			$(this).removeClass('noclick');
 			return;

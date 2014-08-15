@@ -29,14 +29,16 @@
 table {
 	font-size: 20px;
 }
-table, tr, td{
+table, tr, td, td > div{
 	padding: 0;
 	margin: 0;
 	border-collapse: collapse;
 }
 td{
-	vertical-align: middle;
 	border: 1px solid grey;
+}
+td, td > div{
+	vertical-align: middle;
 	height: 40px;
 	width: 40px;
 	min-height: 40px;
@@ -45,7 +47,9 @@ td{
 	max-width: 40px;
 	z-index: 0;
 }
-
+td > div{
+	line-height: 40px;
+}
 html, body{
 	height: 100%;
 	overflow: hidden;
@@ -99,20 +103,20 @@ textarea{
 
 .focused {
 	outline-color: rgb(45, 114, 224) !important;
-	outline-style: auto !important;
-	outline-width: 5px !important;
+	outline-style: solid !important;
+	outline-width: 2px !important;
 	z-index: 5000;
 }
 .selected {
 	outline-color: rgb(19, 148, 24) !important;
-	outline-style: auto !important;
-	outline-width: 5px !important;
+	outline-style: solid !important;
+	outline-width: 2px !important;
 	z-index: 999;
 }
 .selected.focused {
 	outline-color: rgb(19, 73, 148) !important;
-	outline-style: auto !important;
-	outline-width: 5px !important;
+	outline-style: solid !important;
+	outline-width: 2px !important;
 	z-index: 9999;
 }
 .ui-state-disabled{
