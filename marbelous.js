@@ -1,6 +1,7 @@
 var hex_ascii = false;
 var no_nbsp = false;
 var grid_active = true;
+var UNDO_MAX = 100;
 
 var CTypes = {
 	NOTHING:		[0, 'nothing', /^(|\.\.|\s{2})$/, '..'],
@@ -153,6 +154,25 @@ function Board(w, h, nm, i){
 		this.rowcomments[i] = null;
 	this.inputs = 0;
 	this.outputs = 0;
+};
+Board.prototype.copy = function(other){
+	this.width = other.width;
+	this.height = other.height;
+	this.cells = [];
+	for(var i = 0; i < other.width; ++i){
+		this.cells[i] = [];
+		for(var j = 0; j < other.height; ++j){
+			this.cells[i][j] = new Cell('..');
+			this.cells[i][j].copy(other.cells[i][j]);
+		}
+	}
+	this.name = other.name;
+	this.id = other.id;
+	this.comment = other.comment;
+	this.rowcomments = [];
+	$.extend(true,this.rowcomments,other.rowcomments);
+	this.inputs = other.inputs;
+	this.outputs = other.outputs;
 };
 Board.prototype.getName = function(){
 	return this.name;
@@ -312,10 +332,46 @@ function parseBoards(string){
 	return boards;
 }
 
+var undo_history = [[new Board()]], undo_pos = -1;
 var boards = [new Board(10, 14, 'MB', 0)];
 var active_board = 0;
 var active_tile = [0, 0];
-var selected_tiles = [ ];
+var selected_tiles = [];
+undo_history[0][0].copy(boards[0]);
+// undo_pos: next to undo
+// undo_pos + 1: current/next redo
+
+function undo(){
+	if(undo_history.length && undo_pos > -1){
+		// swap current history with current board and move pointer
+		var tmp = undo_history[undo_pos];
+		undo_history[undo_pos] = boards;
+		boards = tmp;
+		--undo_pos;
+	}
+}
+function redo(){
+	if(undo_history.length > undo_pos + 2){
+		++undo_pos;
+		var tmp = undo_history[undo_pos];
+		undo_history[undo_pos] = boards;
+		boards = tmp;
+	}
+}
+function save_undo(){
+	// delete all redo history
+	while(undo_history.length > undo_pos + 2)
+		undo_history.pop();
+	var copy = [];
+	for(var i = 0; i < boards.length; ++i)
+		copy[i] = new Board(), copy[i].copy(boards[i]);
+
+	undo_history.push(copy);
+	// check max length
+	if(undo_history.length > UNDO_MAX)
+		undo_history.shift();
+	undo_pos = undo_history.length - 2;
+}
 
 function focus_tile(i,j,clear_selected){
 	if(typeof clear_selected == 'undefined')
@@ -412,9 +468,13 @@ function gridHandlers(){
 			$this.text($this.text().substr(0, 2));
 		var row = $this.attr('data-row'), col = $this.attr('data-col');
 		var newcell = new Cell($this.text()), newstring = newcell.toString(true);
-		boards[active_board].set(row, col, newcell);
-		$this.removeClass().addClass(boards[active_board].get(row, col).getClass());
-		updateSubroutine(), redrawGrid();
+		if(newstring != boards[active_board].get(row, col)){
+			boards[active_board].set(row, col, newcell);
+			$this.removeClass().addClass(boards[active_board].get(row, col).getClass());
+			updateSubroutine();
+			save_undo();
+			redrawGrid();
+		}
 		$this.attr('contenteditable',false);
 	}).draggable({
 		containment: $('table'),
@@ -467,6 +527,7 @@ function gridHandlers(){
 					clamp(tmp[i][0]+x_disp, 0, boards[active_board].getWidth() - 1),
 					tmp[i][2]
 				);
+			save_undo(); // check if necessary?
 			redrawGrid();
 		},
 	}).draggable('disable');
@@ -551,18 +612,30 @@ function gridDocHandler(){
 					if(e.ctrlKey || e.metaKey) select_tile(row, col);
 				}
 			break;
+			case 90: // z
+				if(e.ctrlKey || e.metaKey){ // control+z undo
+					undo(); updateSubroutine(); redrawGrid();
+				}
+			break;
+			case 89: // y
+				if(e.ctrlKey || e.metaKey){ // control+y redo
+					redo(); updateSubroutine(); redrawGrid();
+				}
+			break;
 		}
 		if(code == 13 || code == 9 || code == -1){
 			e.preventDefault();
 			return false;
 		}
 	}).on('keypress', function(e){
-		//var c = String.fromCharCode(e.which);
-		var row = active_tile[0], col = active_tile[1];
-		//if(c.match(/^[A-Z\d\\\/\+\-=#]$/i))
-		if($('#cell-'+row+'-'+col).attr('contenteditable') == 'false'){
-			focus_tile(row, col, true);
-			$('#cell-'+row+'-'+col).attr('contenteditable', true).focus();
+		if(!e.ctrlKey && !e.altKey && !e.metaKey){
+			//var c = String.fromCharCode(e.which);
+			var row = active_tile[0], col = active_tile[1];
+			//if(c.match(/^[A-Z\d\\\/\+\-=#]$/i))
+			if($('#cell-'+row+'-'+col).attr('contenteditable') == 'false'){
+				focus_tile(row, col, true);
+				$('#cell-'+row+'-'+col).attr('contenteditable', true).focus();
+			}
 		}
 	});
 }
@@ -622,6 +695,7 @@ $(document).ready(function(){
 			}
 			
 			active_board = 0;
+			save_undo();
 			redrawGrid();
 		}
 		grid_active = !grid_active;
