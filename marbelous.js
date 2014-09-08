@@ -1,6 +1,8 @@
 var hex_ascii = false;
 var no_nbsp = false;
+var golfed = false;
 var grid_active = true;
+var src_changed = false;
 var UNDO_MAX = 100;
 
 var CTypes = {
@@ -30,7 +32,7 @@ var CTypes = {
 	BITNOT:			[23,'bitwise-not', /^~~$/, '~~'],
 	CONSTANT_ADD:	[24,'constant-add', /^\+[A-Z\d]$/, '+'],
 	CONSTANT_SUB:	[25,'constant-sub', /^\-[A-Z\d]$/, '-'],
-	STDIN:			[26,'stdin', /^\[\[$/, '[['],
+	STDIN:			[26,'stdin', /^\]\]$/, ']]'],
 	INVALID: 		[99,'invalid', /^(?!x)x$/, '??'],
 };
 function Cell(text){
@@ -358,7 +360,7 @@ function redo(){
 		boards = tmp;
 	}
 }
-function save_undo(){
+function saveUndo(){
 	// delete all redo history
 	while(undo_history.length > undo_pos + 2)
 		undo_history.pop();
@@ -472,7 +474,7 @@ function gridHandlers(){
 			boards[active_board].set(row, col, newcell);
 			$this.removeClass().addClass(boards[active_board].get(row, col).getClass());
 			updateSubroutine();
-			save_undo();
+			saveUndo();
 			redrawGrid();
 		}
 		$this.attr('contenteditable',false);
@@ -527,7 +529,7 @@ function gridHandlers(){
 					clamp(tmp[i][0]+x_disp, 0, boards[active_board].getWidth() - 1),
 					tmp[i][2]
 				);
-			save_undo(); // check if necessary?
+			saveUndo(); // check if necessary?
 			redrawGrid();
 		},
 	}).draggable('disable');
@@ -541,30 +543,49 @@ function redrawGrid(){
 	focus_tile(active_tile[0], active_tile[1], false);
 }
 function redrawSource(){
+	src_changed = false;
 	var src = '';
-	if(boards[0].getComments() != null){
+	if(!golfed && boards[0].getComments() != null){
 		var r = boards[0].getComments().split('\n').splice(-1);
 		for(var j = 0; j < r.length; j++)
 			src += '# ' + r[j] + '\n';
 	}
-	src += boards[0].toString();
+	var appendBoard = function(src, i){
+		var bsrc = boards[i].toString();
+		if(golfed){
+			// strip row comments, spaces, trailing `..`
+			bsrc = bsrc.replace(/#.*(\s)/g, '$1')
+					   .replace(/ /g, '')
+					   .replace(/\.+(\s)/g, '$1')
+			// remove all leading lines; replace other blank lines with `..`
+					   .replace(/^\s*/m, '')
+			// twice to ensure all instances are replaced.
+					   .replace(/(\s)(\s)/mg, '$1..$2')
+					   .replace(/(\s)(\s)/mg, '$1..$2')
+		}
+		return src+bsrc;
+	};
+	src = appendBoard(src, 0);
 	for(var i = 1; i < boards.length; ++i){
 		src += "\n";
-		if(boards[i].getComments() != null){
+		if(!golfed && boards[i].getComments() != null){
 			var r = boards[i].getComments().split('\n');
 			for(var j = 0; j < r.length; j++)
 				src += '# ' + r[j].trim() + '\n';
 		}
 		src += ':' + boards[i].getName() + '\n';
-		src += boards[i].toString();
+		src = appendBoard(src, i);
 	}
 	var textarea = document.createElement('textarea');
 	textarea.setAttribute('id','marbelous-source');
 	textarea.value = src;
 	var heading = document.createElement('h2');
 	heading.appendChild(document.createTextNode('Marbelous Source'));
-	$('#container').empty()[0].appendChild(heading);
+	$('#container').empty()[0].appendChild(heading);	
 	$('#container')[0].appendChild(textarea);
+	$('#marbelous-source').on('change', function(){
+		src_changed = true;
+	});
 }
 function gridDocHandler(){
 	$(document).on('keydown', function(e){
@@ -622,6 +643,11 @@ function gridDocHandler(){
 					redo(); updateSubroutine(); redrawGrid();
 				}
 			break;
+			case 8: // backspace
+			case 46: // delete
+				boards[active_board].set(row, col, new Cell('..'));
+				saveUndo(); updateSubroutine(); redrawGrid();
+			break;
 		}
 		if(code == 13 || code == 9 || code == -1){
 			e.preventDefault();
@@ -655,31 +681,41 @@ $(document).ready(function(){
 		no_nbsp = $(this).is(':checked');
 		redrawGrid();
 	});
+	$('#compact').on('change', function(){
+		golfed = $(this).is(':checked');
+		if(src_changed)
+			boards = parseBoards($('#marbelous-source').val());
+		redrawSource();
+	}).attr('disabled', true);;
 	$('#grid_source_toggle').on('click', function(){
 		if(grid_active){
 			srcDocHandler();
-			redrawSource();
+			redrawSource();			
 			$('#hex_ascii').attr('disabled', true);
 			$('#no_nbsp').attr('disabled', true);
+			$('#compact').attr('disabled', false);
 			$('#active_board').attr('disabled', true);
 			//$('#new_board').attr('disabled', true);
 			$('#grid_source_toggle').val('View Marbelous Board');
 		}else{ 
 			gridDocHandler();
-			// todo: check if failed
-			if($('#marbelous-source').val().trim() == ""){
-				alert('No board detected in marbelous source!');
-				return;
+			if(src_changed){
+				// todo: check if failed
+				if($('#marbelous-source').val().trim() == ""){
+					alert('No board detected in marbelous source!');
+					return;
+				}
+				var bs_new = parseBoards($('#marbelous-source').val());
+				if(bs_new.length == 0){
+					alert('No board detected in marbelous source!');
+					return;
+				}
+				boards = bs_new;
+				updateSubroutine();
 			}
-			var bs_new = parseBoards($('#marbelous-source').val());
-			if(bs_new.length == 0){
-				alert('No board detected in marbelous source!');
-				return;
-			}
-			boards = bs_new;
-			updateSubroutine();
 			$('#hex_ascii').attr('disabled', false);
 			$('#no_nbsp').attr('disabled', false);
+			$('#compact').attr('disabled', true);
 			$('#active_board').attr('disabled', false);
 			//$('#new_board').attr('disabled', false);
 			$('#grid_source_toggle').val('View Marbelous Source');
@@ -695,7 +731,7 @@ $(document).ready(function(){
 			}
 			
 			active_board = 0;
-			save_undo();
+			saveUndo();
 			redrawGrid();
 		}
 		grid_active = !grid_active;
