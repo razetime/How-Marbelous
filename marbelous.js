@@ -4,6 +4,7 @@ var golfed = false;
 var grid_active = true;
 var src_changed = false;
 var UNDO_MAX = 100;
+window.onbeforeunload = function(){ return "Are you sure you want to leave this page?"; };
 
 var CTypes = {
 	NOTHING:		[0, 'nothing', /^(|\.\.|\s{2})$/, '..'],
